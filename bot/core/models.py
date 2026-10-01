@@ -19,6 +19,7 @@ class GuildConfig:
     )
     filters: dict = field(default_factory=dict)
     lockdown: bool = False
+    appeal_guild: int | None = None
 
     @classmethod
     def from_row(cls, row) -> GuildConfig:
@@ -29,6 +30,7 @@ class GuildConfig:
             escalation={int(k): v for k, v in json.loads(row["escalation_json"]).items()},
             filters=json.loads(row["filters_json"]),
             lockdown=bool(row["lockdown"]),
+            appeal_guild=row["appeal_guild"],
         )
 
     def escalation_json(self) -> str:
@@ -48,3 +50,17 @@ class Infraction:
     source: str = "manual"
     active: bool = True
     created_at: str = field(default_factory=_now)
+
+
+@dataclass
+class Appeal:
+    id: int
+    guild_id: int
+    user_id: int
+    case_id: int | None
+    status: str
+    statement: str
+    resolved_by: int | None
+    created_at: str
+    resolved_at: str | None
+    thread_id: int | None

@@ -21,6 +21,7 @@ class Warden(commands.Bot):
         super().__init__(command_prefix=commands.when_mentioned, intents=intents)
         self.settings = settings
         self.db = db
+        self._commands_synced = False
 
     async def setup_hook(self) -> None:
         await self.db.connect()
@@ -30,11 +31,20 @@ class Warden(commands.Bot):
         await self.load_extension("bot.cogs.infractions")
         await self.load_extension("bot.cogs.automod")
         await self.load_extension("bot.cogs.raid")
+        await self.load_extension("bot.cogs.appeals")
+        await self.load_extension("bot.cogs.config")
         if self.settings.heartbeat_channel:
             self.heartbeat_loop.start()
 
     async def on_ready(self) -> None:
         log.info("connected as %s (%s)", self.user, self.user and self.user.id)
+        if not self._commands_synced:
+            # guild-synced commands appear instantly (global sync takes up to 1h)
+            for guild in self.guilds:
+                self.tree.copy_global_to(guild=guild)
+                await self.tree.sync(guild=guild)
+            self._commands_synced = True
+            log.info("slash commands synced to %d guild(s)", len(self.guilds))
 
     @tasks.loop(minutes=5)
     async def heartbeat_loop(self) -> None:
