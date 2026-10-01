@@ -1,0 +1,38 @@
+# Secrets & local env
+.env
+*.env
+secrets/
+
+# Plans & notes (never committed)
+plan*.md
+PLAN*.md
+*.plan.md
+plans/
+notes/
+TODO.local.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Data & runtime
+*.db
+*.sqlite3
+data/
+backups/
+
+# Deploy artifacts
+deploy/.env
+*.pem
+id_ed25519*
+id_rsa*
+
+# OS noise
+.DS_Store

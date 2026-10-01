@@ -1,0 +1,12 @@
+services:
+  warden:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN:?set from SSM before compose up}
+      DB_PATH: /app/data/warden.db
+      HEARTBEAT_CHANNEL: ${HEARTBEAT_CHANNEL:-}
+    volumes:
+      - ./data:/app/data
