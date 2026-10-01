@@ -10,16 +10,16 @@ from bot.cogs.base import WardenCog
 from bot.services.escalation import VALID_ACTIONS, validate_thresholds
 from bot.services.filters import compile_pattern
 
-cfg_group = app_commands.Group(name="config", description="Guild configuration")
-filter_group = app_commands.Group(name="filter", description="Word filter patterns")
-
 ACTION_CHOICES = [
     app_commands.Choice(name=a, value=a) for a in sorted(VALID_ACTIONS)
 ] + [app_commands.Choice(name="clear (remove threshold)", value="clear")]
 
 
 class Config(WardenCog):
-    @cfg_group.command(name="show", description="Show current configuration")
+    cfg = app_commands.Group(name="config", description="Guild configuration")
+    flt = app_commands.Group(name="filter", description="Word filter patterns")
+
+    @cfg.command(name="show", description="Show current configuration")
     async def show(self, interaction: discord.Interaction) -> None:
         if await self.deny_if_not_mod(interaction):
             return
@@ -52,7 +52,7 @@ class Config(WardenCog):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @cfg_group.command(name="mod-role", description="Set the moderator role")
+    @cfg.command(name="mod-role", description="Set the moderator role")
     async def mod_role(self, interaction: discord.Interaction, role: discord.Role) -> None:
         if await self.deny_if_not_mod(interaction):
             return
@@ -63,7 +63,7 @@ class Config(WardenCog):
             f"Moderator role set to {role.mention}.", ephemeral=True
         )
 
-    @cfg_group.command(name="log-channel", description="Set the case log channel")
+    @cfg.command(name="log-channel", description="Set the case log channel")
     async def log_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ) -> None:
@@ -76,7 +76,7 @@ class Config(WardenCog):
             f"Case log set to {channel.mention}.", ephemeral=True
         )
 
-    @cfg_group.command(name="escalation", description="Set or clear an escalation threshold")
+    @cfg.command(name="escalation", description="Set or clear an escalation threshold")
     @app_commands.describe(threshold="Infraction count that triggers the action")
     @app_commands.choices(action=ACTION_CHOICES)
     async def escalation(
@@ -103,7 +103,7 @@ class Config(WardenCog):
             f"Escalation: {table}", ephemeral=True
         )
 
-    @cfg_group.command(
+    @cfg.command(
         name="appeal-guild", description="Link this server to its appeal server"
     )
     @app_commands.describe(guild_id="ID of the server where /appeal is used")
@@ -129,7 +129,7 @@ class Config(WardenCog):
             f"Appeals from `{target_id}` will land in this server.", ephemeral=True
         )
 
-    @filter_group.command(name="show", description="Show word filters and automod rules")
+    @flt.command(name="show", description="Show word filters and automod rules")
     async def filter_show(self, interaction: discord.Interaction) -> None:
         if await self.deny_if_not_mod(interaction):
             return
@@ -145,7 +145,7 @@ class Config(WardenCog):
             embed.set_footer(text=f"+{len(words) - 20} more")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @filter_group.command(name="add", description="Add a word filter regex")
+    @flt.command(name="add", description="Add a word filter regex")
     @app_commands.describe(pattern="Case-insensitive regex, e.g. bad\\s+word")
     async def filter_add(self, interaction: discord.Interaction, pattern: str) -> None:
         if await self.deny_if_not_mod(interaction):
@@ -170,7 +170,7 @@ class Config(WardenCog):
             f"Added `/{pattern}/` ({len(words)} total).", ephemeral=True
         )
 
-    @filter_group.command(name="remove", description="Remove a word filter regex")
+    @flt.command(name="remove", description="Remove a word filter regex")
     @app_commands.describe(pattern="The exact pattern to remove")
     async def filter_remove(self, interaction: discord.Interaction, pattern: str) -> None:
         if await self.deny_if_not_mod(interaction):

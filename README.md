@@ -26,8 +26,8 @@ auto-escalation, case logging, raid lockdown, and a Discord-only appeal flow.
        --type SecureString --value "<token>"
    ```
 
-   Note: the default `alias/aws/ssm` key expires in 7 days — re-put the
-   parameter on rotation, or encrypt with a customer-managed KMS key.
+   Standard-tier SecureStrings with the default `aws/ssm` key don't expire.
+   Rotate the token manually if it ever leaks (`--overwrite` with a fresh one).
 
 ## Development
 

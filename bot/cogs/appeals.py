@@ -11,8 +11,6 @@ from bot.core.models import Appeal, GuildConfig
 
 log = logging.getLogger("warden.appeals")
 
-appeal_group = app_commands.Group(name="appeal", description="Ban appeal workflow")
-
 
 class AppealModal(discord.ui.Modal, title="Submit your appeal"):
     statement = discord.ui.TextInput(
@@ -99,13 +97,17 @@ class AppealModal(discord.ui.Modal, title="Submit your appeal"):
 
 
 class Appeals(WardenCog):
-    @appeal_group.command(
+    appeal = app_commands.Group(
+        name="appeal", description="Ban appeal workflow"
+    )
+
+    @appeal.command(
         name="submit", description="Appeal a punishment (works from the appeal server)"
     )
     async def submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_modal(AppealModal(self.bot))
 
-    @appeal_group.command(name="approve", description="Approve an appeal and lift the ban")
+    @appeal.command(name="approve", description="Approve an appeal and lift the ban")
     @app_commands.describe(appeal_id="Appeal number from the mod log")
     async def approve(self, interaction: discord.Interaction, appeal_id: int) -> None:
         if await self.deny_if_not_mod(interaction):
@@ -139,7 +141,7 @@ class Appeals(WardenCog):
 
         await self._resolve(interaction, appeal, "approved", note, discord.Color.green())
 
-    @appeal_group.command(name="deny", description="Deny an appeal")
+    @appeal.command(name="deny", description="Deny an appeal")
     @app_commands.describe(
         appeal_id="Appeal number from the mod log", reason="Shown to the appellant"
     )
