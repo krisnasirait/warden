@@ -109,11 +109,40 @@ class Database:
 
     async def deactivate_infractions(self, guild_id: int, user_id: int) -> int:
         cursor = await self.conn.execute(
-            "UPDATE infractions SET active = 0 WHERE guild_id = ? AND user_id = ?",
+            "UPDATE infractions SET active = 0"
+            " WHERE guild_id = ? AND user_id = ? AND active = 1",
             (guild_id, user_id),
         )
         await self.conn.commit()
         return cursor.rowcount
+
+    async def get_infraction(self, guild_id: int, case_id: int) -> Infraction | None:
+        rows = await self.conn.execute_fetchall(
+            "SELECT * FROM infractions WHERE guild_id = ? AND id = ?",
+            (guild_id, case_id),
+        )
+        if not rows:
+            return None
+        row = rows[0]
+        return Infraction(
+            id=row["id"],
+            guild_id=row["guild_id"],
+            user_id=row["user_id"],
+            mod_id=row["mod_id"],
+            reason=row["reason"],
+            source=row["source"],
+            active=bool(row["active"]),
+            created_at=row["created_at"],
+        )
+
+    async def deactivate_case(self, guild_id: int, case_id: int) -> bool:
+        cursor = await self.conn.execute(
+            "UPDATE infractions SET active = 0"
+            " WHERE guild_id = ? AND id = ? AND active = 1",
+            (guild_id, case_id),
+        )
+        await self.conn.commit()
+        return cursor.rowcount > 0
 
     async def history(self, guild_id: int, user_id: int) -> list[Infraction]:
         rows = await self.conn.execute_fetchall(

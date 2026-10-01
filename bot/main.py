@@ -4,7 +4,7 @@ import asyncio
 import logging
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from bot.core.config import Settings
 from bot.core.db import Database
@@ -27,13 +27,14 @@ class Warden(commands.Bot):
         ran = await self.db.run_migrations()
         if ran:
             log.info("migrations applied: %s", ", ".join(ran))
+        await self.load_extension("bot.cogs.infractions")
         if self.settings.heartbeat_channel:
             self.heartbeat_loop.start()
 
     async def on_ready(self) -> None:
         log.info("connected as %s (%s)", self.user, self.user and self.user.id)
 
-    @discord.ext.tasks.loop(minutes=5)
+    @tasks.loop(minutes=5)
     async def heartbeat_loop(self) -> None:
         channel = self.get_channel(self.settings.heartbeat_channel)
         if not isinstance(channel, discord.TextChannel):
