@@ -41,6 +41,14 @@ class Config(WardenCog):
             name="Appeal guild",
             value=f"`{config.appeal_guild}`" if config.appeal_guild else "*not set*",
         )
+        embed.add_field(
+            name="Welcome / goodbye",
+            value=(
+                f"{f'<#{config.welcome_channel}>' if config.welcome_channel else '*#welcome*'}"
+                f" / "
+                f"{f'<#{config.goodbye_channel}>' if config.goodbye_channel else '*#goodbye*'}"
+            ),
+        )
         embed.add_field(name="Escalation", value=escalation, inline=False)
         embed.add_field(
             name="Word filters",
@@ -101,6 +109,32 @@ class Config(WardenCog):
         table = ", ".join(f"{n}→{a}" for n, a in sorted(config.escalation.items()))
         await interaction.response.send_message(
             f"Escalation: {table}", ephemeral=True
+        )
+
+    @cfg.command(name="welcome-channel", description="Set the welcome message channel")
+    async def welcome_channel(
+        self, interaction: discord.Interaction, channel: discord.TextChannel
+    ) -> None:
+        if await self.deny_if_not_mod(interaction):
+            return
+        config = await self.config(interaction.guild_id)
+        config.welcome_channel = channel.id
+        await self.bot.db.set_config(config)
+        await interaction.response.send_message(
+            f"Welcome messages → {channel.mention}.", ephemeral=True
+        )
+
+    @cfg.command(name="goodbye-channel", description="Set the goodbye message channel")
+    async def goodbye_channel(
+        self, interaction: discord.Interaction, channel: discord.TextChannel
+    ) -> None:
+        if await self.deny_if_not_mod(interaction):
+            return
+        config = await self.config(interaction.guild_id)
+        config.goodbye_channel = channel.id
+        await self.bot.db.set_config(config)
+        await interaction.response.send_message(
+            f"Goodbye messages → {channel.mention}.", ephemeral=True
         )
 
     @cfg.command(

@@ -20,6 +20,8 @@ class GuildConfig:
     filters: dict = field(default_factory=dict)
     lockdown: bool = False
     appeal_guild: int | None = None
+    welcome_channel: int | None = None
+    goodbye_channel: int | None = None
 
     @classmethod
     def from_row(cls, row) -> GuildConfig:
@@ -31,6 +33,8 @@ class GuildConfig:
             filters=json.loads(row["filters_json"]),
             lockdown=bool(row["lockdown"]),
             appeal_guild=row["appeal_guild"],
+            welcome_channel=row["welcome_channel"],
+            goodbye_channel=row["goodbye_channel"],
         )
 
     def escalation_json(self) -> str:

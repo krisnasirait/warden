@@ -65,13 +65,17 @@ class Database:
     async def set_config(self, config: GuildConfig) -> None:
         await self.conn.execute(
             "INSERT INTO guild_config (guild_id, mod_role, log_channel,"
-            " escalation_json, filters_json, lockdown, appeal_guild, updated_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            " escalation_json, filters_json, lockdown, appeal_guild,"
+            " welcome_channel, goodbye_channel, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             " ON CONFLICT(guild_id) DO UPDATE SET"
             " mod_role = excluded.mod_role, log_channel = excluded.log_channel,"
             " escalation_json = excluded.escalation_json,"
             " filters_json = excluded.filters_json, lockdown = excluded.lockdown,"
-            " appeal_guild = excluded.appeal_guild, updated_at = excluded.updated_at",
+            " appeal_guild = excluded.appeal_guild,"
+            " welcome_channel = excluded.welcome_channel,"
+            " goodbye_channel = excluded.goodbye_channel,"
+            " updated_at = excluded.updated_at",
             (
                 config.guild_id,
                 config.mod_role,
@@ -80,6 +84,8 @@ class Database:
                 config.filters_json(),
                 int(config.lockdown),
                 config.appeal_guild,
+                config.welcome_channel,
+                config.goodbye_channel,
                 datetime.now(UTC).isoformat(),
             ),
         )

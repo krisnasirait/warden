@@ -30,7 +30,7 @@ def test_migrations_apply_on_fresh_db(tmp_path):
         return ran, tables
 
     ran, tables = run(scenario())
-    assert ran == ["001_init.sql", "002_appeals.sql"]
+    assert ran == ["001_init.sql", "002_appeals.sql", "003_welcome.sql"]
     assert {"guild_config", "infractions", "appeals", "_migrations"} <= tables
 
 
@@ -45,7 +45,7 @@ def test_migrations_are_idempotent(tmp_path):
         return first, second
 
     first, second = run(scenario())
-    assert first == ["001_init.sql", "002_appeals.sql"]
+    assert first == ["001_init.sql", "002_appeals.sql", "003_welcome.sql"]
     assert second == []
 
 
