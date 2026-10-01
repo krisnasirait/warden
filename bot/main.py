@@ -48,17 +48,32 @@ class Warden(commands.Bot):
 
     @tasks.loop(minutes=5)
     async def heartbeat_loop(self) -> None:
-        channel = self.get_channel(self.settings.heartbeat_channel)
-        if not isinstance(channel, discord.TextChannel):
-            return
-        embed = discord.Embed(title="warden alive", color=discord.Color.green())
-        embed.timestamp = discord.utils.utcnow()
-        # edit-or-post: keep one status message, never spam the channel
-        async for msg in channel.history(limit=50):
-            if msg.author == self.user and msg.embeds and msg.embeds[0].title == "warden alive":
-                await msg.edit(embed=embed)
+        try:
+            channel = self.get_channel(self.settings.heartbeat_channel)
+            if not isinstance(channel, discord.TextChannel):
+                log.warning(
+                    "heartbeat channel %s not in cache", self.settings.heartbeat_channel
+                )
                 return
-        await channel.send(embed=embed)
+            embed = discord.Embed(title="warden alive", color=discord.Color.green())
+            embed.timestamp = discord.utils.utcnow()
+            # edit-or-post: keep one status message, never spam the channel
+            async for msg in channel.history(limit=50):
+                if (
+                    msg.author == self.user
+                    and msg.embeds
+                    and msg.embeds[0].title == "warden alive"
+                ):
+                    await msg.edit(embed=embed)
+                    return
+            await channel.send(embed=embed)
+        except Exception:
+            log.exception("heartbeat failed")
+
+    @heartbeat_loop.before_loop
+    async def before_heartbeat(self) -> None:
+        # don't attempt before guilds/channels are cached
+        await self.wait_until_ready()
 
     async def close(self) -> None:
         await self.db.close()
