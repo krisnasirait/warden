@@ -28,6 +28,8 @@ class Warden(commands.Bot):
         if ran:
             log.info("migrations applied: %s", ", ".join(ran))
         await self.load_extension("bot.cogs.infractions")
+        await self.load_extension("bot.cogs.automod")
+        await self.load_extension("bot.cogs.raid")
         if self.settings.heartbeat_channel:
             self.heartbeat_loop.start()
 

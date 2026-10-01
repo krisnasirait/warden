@@ -17,7 +17,8 @@ auto-escalation, case logging, raid lockdown, and a Discord-only appeal flow.
    `SERVER MEMBERS INTENT`. Automod silently reads nothing without them.
 3. Invite with scopes `bot applications.commands` and permissions:
    Send Messages, Embed Links, Manage Messages, Moderate Members, Kick, Ban,
-   Create Public Threads, Create Private Threads, Read Message History.
+   Create Public Threads, Create Private Threads, Read Message History,
+   **Manage Server** (lockdown changes the verification level).
 4. Store the bot token in SSM (never in git, never in `.env`):
 
    ```bash
