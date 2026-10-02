@@ -166,6 +166,20 @@ class Config(WardenCog):
             await interaction.followup.send("No `#rules` channel found.", ephemeral=True)
             return
 
+        # remove any previous verification message so reruns swap instead of stack
+        if config.verify_message:
+            old_channel = (
+                guild.get_channel(config.verify_channel)
+                if config.verify_channel
+                else rules
+            )
+            if isinstance(old_channel, discord.TextChannel):
+                try:
+                    old = await old_channel.fetch_message(config.verify_message)
+                    await old.delete()
+                except discord.HTTPException:
+                    pass
+
         role = guild.get_role(config.verified_role) if config.verified_role else None
         if role is None:
             role = discord.utils.get(guild.roles, name="Verified")
@@ -175,13 +189,32 @@ class Config(WardenCog):
             )
             return
 
+        eros = discord.utils.get(guild.roles, name="EROS")
+        roles_channel = next(
+            (c for c in guild.text_channels if c.name.lower() == "roles"), None
+        )
+        eros_ref = f"<@&{eros.id}>" if eros else "@EROS"
+        roles_ref = f"<#{roles_channel.id}>" if roles_channel else "#roles"
+
         embed = discord.Embed(
-            title="Verify to enter",
+            title="Peraturan Komunitas",
             description=(
-                "**Welcome to this server.**\n\n"
-                "Read the rules above, then react with ✅ on this message "
-                "to unlock every other channel.\n\n"
-                "This only needs to be done once."
+                "**1)** DILARANG TOXIC\n"
+                "**2)** DILARANG SHARE VIDEO/PHOTO YANG MENGANDUNG PORNOGRAFI/HAL "
+                "DILUAR KOMUNITAS YANG BISA MENIMBULKAN SALAH PAHAM\n"
+                "**3)** SALING MENGHORMATI DAN TOLERANSI\n"
+                f"**4)** JIKA ADA KEPERLUAN ADMIN {eros_ref}\n"
+                "**5)** PAKAI DENGAN BAIK DAN BENAR SESUAI NAMA SETIAP KOLOM\n"
+                "**6)** TIDAK DIPERKENANKAN MENGGUNAKAN NAMA TOXIC\n"
+                "**7)** DILARANG SPAMMING\n"
+                "**8)** DILARANG PROMOTIONS DAN JUAL BELI YANG BERSIFAT "
+                "MENGUNTUNGKAN DIRI SENDIRI\n"
+                "**9)** NO MOD\n"
+                f"**10)** SILAHKAN KLIK {roles_ref} LALU KLIK EMOJI "
+                "UNTUK AKSES FITUR CHAT\n\n"
+                "TERIMAKASIH ATAS PERHATIANNYA .😍\n\n"
+                "———————————————\n"
+                "Klik ✅ di bawah untuk membuka seluruh channel."
             ),
             color=discord.Color.blurple(),
         )
@@ -200,7 +233,7 @@ class Config(WardenCog):
         await self.bot.db.set_config(config)
 
         await interaction.followup.send(
-            f"Verification live in {rules.mention} — gated on {role.mention}.",
+            f"Rules + verification live in {rules.mention} — gated on {role.mention}.",
             ephemeral=True,
         )
 
