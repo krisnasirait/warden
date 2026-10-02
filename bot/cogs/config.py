@@ -295,10 +295,12 @@ class Config(WardenCog):
                 pass
 
         specs = [
-            ("Gaming", "\U0001f3ae"),
-            ("Music", "\U0001f3b5"),
-            ("Events", "\U0001f389"),
+            ("Python", "\U0001f40d"),
+            ("JavaScript", "\U0001f4df"),
+            ("Web Dev", "\U0001f310"),
+            ("AI/ML", "\U0001f916"),
             ("Announcements", "\U0001f4e2"),
+            ("Events", "\U0001f389"),
         ]
         warden_pos = max(r.position for r in guild.roles if r.name == "Warden")
         mapping: dict[str, int] = {}
@@ -331,10 +333,12 @@ class Config(WardenCog):
         embed = discord.Embed(
             title="Pick your roles",
             description=(
-                "Klik emoji di bawah buat ambil role, klik lagi buat lepas.\n"
-                "Role ini buat dapet ping doang — bukan akses.\n\n"
-                "\U0001f3ae Gaming\n\U0001f3b5 Music\n\U0001f389 Events\n"
-                "\U0001f4e2 Announcements"
+                "Klik emoji di bawah buat ambil role, klik lagi buat lepas.\n\n"
+                "**Coding** \u2014 buka akses channel coding\n"
+                "\U0001f40d Python\n\U0001f4df JavaScript\n\U0001f310 Web Dev\n"
+                "\U0001f916 AI/ML\n\n"
+                "**Notif** \u2014 dapet ping doang\n"
+                "\U0001f4e2 Announcements\n\U0001f389 Events"
             ),
             color=discord.Color.blurple(),
         )
