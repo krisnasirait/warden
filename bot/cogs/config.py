@@ -197,57 +197,52 @@ class Config(WardenCog):
         roles_ref = f"<#{roles_channel.id}>" if roles_channel else "#roles"
 
         embed = discord.Embed(
-            title="Peraturan Server",
+            title="Rules (baca dulu ya)",
             description=(
-                "Harap baca peraturan berikut sebelum mengakses channel lain.\n"
-                "Setelah dibaca, **klik ✅ di bawah** untuk membuka seluruh server."
+                "Baca bentar, terus **klik ✅ di bawah** buat buka semua channel."
             ),
             color=discord.Color.blurple(),
         )
         embed.add_field(
-            name="Perilaku",
+            name="Ngobrol",
             value=(
-                "1. Dilarang toxic, rasis, SARA, bullying, dan serangan pribadi.\n"
-                "2. Saling menghormati dan bertoleransi — perdebatan wajar "
-                "diperbolehkan selama tetap santun."
+                "1. No toxic, rasis, SARA, atau nge-bully orang.\n"
+                "2. Sama-sama respect, beda pendapat mah biasa."
             ),
             inline=False,
         )
         embed.add_field(
             name="Konten",
             value=(
-                "3. Dilarang membagikan konten pornografi/NSFW dalam bentuk apa pun.\n"
-                "4. Dilarang konten di luar komunitas yang berpotensi menimbulkan "
-                "salah paham."
+                "3. Jangan share porn / NSFW.\n"
+                "4. Jangan share hal di luar komunitas yang bisa bikin salah paham."
             ),
             inline=False,
         )
         embed.add_field(
-            name="Spam & Promosi",
+            name="Spam & Iklan",
             value=(
-                "5. Dilarang spamming, flood chat, dan mention massal.\n"
-                "6. Dilarang promosi, jual beli, atau ajakan yang hanya "
-                "menguntungkan diri sendiri."
+                "5. No spam, flood, atau mention massal.\n"
+                "6. Jangan promosi / jualan yang cuma untungin diri sendiri."
             ),
             inline=False,
         )
         embed.add_field(
-            name="Identitas",
+            name="Nama & Identitas",
             value=(
-                "7. Gunakan nickname sesuai kolom yang tersedia; nama atau profil "
-                "yang toxic dilarang.\n"
-                "8. Dilarang mengaku moderator atau meminta posisi moderator."
+                "7. Nickname dipake yang bener, sesuai kolom. Nama toxic dilarang.\n"
+                "8. Jangan ngaku moderator atau minta jadi mod."
             ),
             inline=False,
         )
         embed.add_field(
-            name="Akses & Catatan",
+            name="Yang lain",
             value=(
-                f"9. Untuk keperluan admin, tag {eros_ref}.\n"
-                f"10. Untuk akses chat, ambil role di {roles_ref} dengan mengklik emoji."
+                f"9. Butuh admin? Tag {eros_ref}.\n"
+                f"10. Mau buka chat? Ambil role di {roles_ref}, klik emoji aja."
                 "\n\n"
-                "Pelanggaran ditangani: peringatan → timeout → kick → ban.\n"
-                "Terima kasih atas perhatiannya. 😍"
+                "Pelanggaran: warning → timeout → kick → ban.\n"
+                "Makasih udah baca 😍"
             ),
             inline=False,
         )
@@ -267,6 +262,103 @@ class Config(WardenCog):
 
         await interaction.followup.send(
             f"Rules + verification live in {rules.mention} — gated on {role.mention}.",
+            ephemeral=True,
+        )
+
+    @cfg.command(
+        name="setup-role-picker",
+        description="Post the role picker in #roles (create + react)",
+    )
+    async def setup_role_picker(self, interaction: discord.Interaction) -> None:
+        if await self.deny_if_not_mod(interaction):
+            return
+        await interaction.response.defer(ephemeral=True)
+
+        config = await self.config(interaction.guild_id)
+        guild = interaction.guild
+        old = (config.filters or {}).get("role_picker") or {}
+
+        channel = guild.get_channel(old.get("channel")) if old.get("channel") else None
+        if not isinstance(channel, discord.TextChannel):
+            channel = next(
+                (c for c in guild.text_channels if c.name.lower() == "roles"), None
+            )
+        if channel is None:
+            await interaction.followup.send("No `#roles` channel found.", ephemeral=True)
+            return
+
+        if old.get("message"):
+            try:
+                stale = await channel.fetch_message(old["message"])
+                await stale.delete()
+            except discord.HTTPException:
+                pass
+
+        specs = [
+            ("Gaming", "\U0001f3ae"),
+            ("Music", "\U0001f3b5"),
+            ("Events", "\U0001f389"),
+            ("Announcements", "\U0001f4e2"),
+        ]
+        warden_pos = max(r.position for r in guild.roles if r.name == "Warden")
+        mapping: dict[str, int] = {}
+        created = []
+        for name, emoji in specs:
+            role = discord.utils.get(guild.roles, name=name)
+            if role is None:
+                try:
+                    role = await guild.create_role(
+                        name=name,
+                        permissions=discord.Permissions.none(),
+                        mentionable=True,
+                        reason="role picker",
+                    )
+                except discord.HTTPException as exc:
+                    await interaction.followup.send(
+                        f"Could not create `{name}` role ({exc.status}).",
+                        ephemeral=True,
+                    )
+                    return
+                created.append(name)
+            if role.position >= warden_pos:
+                await interaction.followup.send(
+                    f"`{name}` sits at or above Warden — drag it below Warden, then retry.",
+                    ephemeral=True,
+                )
+                return
+            mapping[emoji] = role.id
+
+        embed = discord.Embed(
+            title="Pick your roles",
+            description=(
+                "Klik emoji di bawah buat ambil role, klik lagi buat lepas.\n"
+                "Role ini buat dapet ping doang — bukan akses.\n\n"
+                "\U0001f3ae Gaming\n\U0001f3b5 Music\n\U0001f389 Events\n"
+                "\U0001f4e2 Announcements"
+            ),
+            color=discord.Color.blurple(),
+        )
+        try:
+            message = await channel.send(embed=embed)
+            for emoji in mapping:
+                await message.add_reaction(emoji)
+        except discord.HTTPException as exc:
+            await interaction.followup.send(
+                f"Could not post in {channel.mention} ({exc.status}).", ephemeral=True
+            )
+            return
+
+        config.filters = dict(config.filters or {})
+        config.filters["role_picker"] = {
+            "channel": channel.id,
+            "message": message.id,
+            "roles": mapping,
+        }
+        await self.bot.db.set_config(config)
+
+        made = f" (created {', '.join(created)})" if created else ""
+        await interaction.followup.send(
+            f"Role picker live in {channel.mention}{made} — {len(mapping)} roles.",
             ephemeral=True,
         )
 
