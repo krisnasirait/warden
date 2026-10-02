@@ -197,26 +197,59 @@ class Config(WardenCog):
         roles_ref = f"<#{roles_channel.id}>" if roles_channel else "#roles"
 
         embed = discord.Embed(
-            title="Peraturan Komunitas",
+            title="Peraturan Server",
             description=(
-                "**1)** DILARANG TOXIC\n"
-                "**2)** DILARANG SHARE VIDEO/PHOTO YANG MENGANDUNG PORNOGRAFI/HAL "
-                "DILUAR KOMUNITAS YANG BISA MENIMBULKAN SALAH PAHAM\n"
-                "**3)** SALING MENGHORMATI DAN TOLERANSI\n"
-                f"**4)** JIKA ADA KEPERLUAN ADMIN {eros_ref}\n"
-                "**5)** PAKAI DENGAN BAIK DAN BENAR SESUAI NAMA SETIAP KOLOM\n"
-                "**6)** TIDAK DIPERKENANKAN MENGGUNAKAN NAMA TOXIC\n"
-                "**7)** DILARANG SPAMMING\n"
-                "**8)** DILARANG PROMOTIONS DAN JUAL BELI YANG BERSIFAT "
-                "MENGUNTUNGKAN DIRI SENDIRI\n"
-                "**9)** NO MOD\n"
-                f"**10)** SILAHKAN KLIK {roles_ref} LALU KLIK EMOJI "
-                "UNTUK AKSES FITUR CHAT\n\n"
-                "TERIMAKASIH ATAS PERHATIANNYA .😍\n\n"
-                "———————————————\n"
-                "Klik ✅ di bawah untuk membuka seluruh channel."
+                "Harap baca peraturan berikut sebelum mengakses channel lain.\n"
+                "Setelah dibaca, **klik ✅ di bawah** untuk membuka seluruh server."
             ),
             color=discord.Color.blurple(),
+        )
+        embed.add_field(
+            name="Perilaku",
+            value=(
+                "1. Dilarang toxic, rasis, SARA, bullying, dan serangan pribadi.\n"
+                "2. Saling menghormati dan bertoleransi — perdebatan wajar "
+                "diperbolehkan selama tetap santun."
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Konten",
+            value=(
+                "3. Dilarang membagikan konten pornografi/NSFW dalam bentuk apa pun.\n"
+                "4. Dilarang konten di luar komunitas yang berpotensi menimbulkan "
+                "salah paham."
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Spam & Promosi",
+            value=(
+                "5. Dilarang spamming, flood chat, dan mention massal.\n"
+                "6. Dilarang promosi, jual beli, atau ajakan yang hanya "
+                "menguntungkan diri sendiri."
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Identitas",
+            value=(
+                "7. Gunakan nickname sesuai kolom yang tersedia; nama atau profil "
+                "yang toxic dilarang.\n"
+                "8. Dilarang mengaku moderator atau meminta posisi moderator."
+            ),
+            inline=False,
+        )
+        embed.add_field(
+            name="Akses & Catatan",
+            value=(
+                f"9. Untuk keperluan admin, tag {eros_ref}.\n"
+                f"10. Untuk akses chat, ambil role di {roles_ref} dengan mengklik emoji."
+                "\n\n"
+                "Pelanggaran ditangani: peringatan → timeout → kick → ban.\n"
+                "Terima kasih atas perhatiannya. 😍"
+            ),
+            inline=False,
         )
         try:
             message = await rules.send(embed=embed)
