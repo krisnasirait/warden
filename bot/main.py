@@ -34,6 +34,7 @@ class Warden(commands.Bot):
         await self.load_extension("bot.cogs.appeals")
         await self.load_extension("bot.cogs.config")
         await self.load_extension("bot.cogs.welcome")
+        await self.load_extension("bot.cogs.verify")
         if self.settings.heartbeat_channel:
             self.heartbeat_loop.start()
 

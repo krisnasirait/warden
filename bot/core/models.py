@@ -22,6 +22,9 @@ class GuildConfig:
     appeal_guild: int | None = None
     welcome_channel: int | None = None
     goodbye_channel: int | None = None
+    verified_role: int | None = None
+    verify_channel: int | None = None
+    verify_message: int | None = None
 
     @classmethod
     def from_row(cls, row) -> GuildConfig:
@@ -35,6 +38,9 @@ class GuildConfig:
             appeal_guild=row["appeal_guild"],
             welcome_channel=row["welcome_channel"],
             goodbye_channel=row["goodbye_channel"],
+            verified_role=row["verified_role"],
+            verify_channel=row["verify_channel"],
+            verify_message=row["verify_message"],
         )
 
     def escalation_json(self) -> str:

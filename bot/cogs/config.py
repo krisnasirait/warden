@@ -58,6 +58,14 @@ class Config(WardenCog):
             name="Lockdown",
             value="ENGAGED" if config.lockdown else "off",
         )
+        embed.add_field(
+            name="Verification",
+            value=(
+                f"armed · role {config.verified_role}"
+                if config.verify_message
+                else "*not set up*"
+            ),
+        )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @cfg.command(name="mod-role", description="Set the moderator role")
@@ -135,6 +143,65 @@ class Config(WardenCog):
         await self.bot.db.set_config(config)
         await interaction.response.send_message(
             f"Goodbye messages → {channel.mention}.", ephemeral=True
+        )
+
+    @cfg.command(
+        name="setup-verification",
+        description="Post the ✅ message in #rules that gates the server",
+    )
+    async def setup_verification(self, interaction: discord.Interaction) -> None:
+        if await self.deny_if_not_mod(interaction):
+            return
+        await interaction.response.defer(ephemeral=True)
+
+        config = await self.config(interaction.guild_id)
+        guild = interaction.guild
+
+        rules = guild.get_channel(config.verify_channel) if config.verify_channel else None
+        if not isinstance(rules, discord.TextChannel):
+            rules = next(
+                (c for c in guild.text_channels if c.name.lower() == "rules"), None
+            )
+        if rules is None:
+            await interaction.followup.send("No `#rules` channel found.", ephemeral=True)
+            return
+
+        role = guild.get_role(config.verified_role) if config.verified_role else None
+        if role is None:
+            role = discord.utils.get(guild.roles, name="Verified")
+        if role is None:
+            await interaction.followup.send(
+                "No `Verified` role found — create it first.", ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title="Verify to enter",
+            description=(
+                "**Welcome to this server.**\n\n"
+                "Read the rules above, then react with ✅ on this message "
+                "to unlock every other channel.\n\n"
+                "This only needs to be done once."
+            ),
+            color=discord.Color.blurple(),
+        )
+        try:
+            message = await rules.send(embed=embed)
+            await message.add_reaction("✅")
+        except discord.HTTPException as exc:
+            await interaction.followup.send(
+                f"Could not post in {rules.mention} ({exc.status}).", ephemeral=True
+            )
+            return
+
+        config.verify_channel = rules.id
+        config.verify_message = message.id
+        config.verified_role = role.id
+        await self.bot.db.set_config(config)
+
+        await interaction.followup.send(
+            f"Verification live in {rules.mention} — gated on {role.mention}.",
+            ephemeral=True,
         )
 
     @cfg.command(

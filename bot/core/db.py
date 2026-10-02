@@ -66,8 +66,9 @@ class Database:
         await self.conn.execute(
             "INSERT INTO guild_config (guild_id, mod_role, log_channel,"
             " escalation_json, filters_json, lockdown, appeal_guild,"
-            " welcome_channel, goodbye_channel, updated_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            " welcome_channel, goodbye_channel,"
+            " verified_role, verify_channel, verify_message, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             " ON CONFLICT(guild_id) DO UPDATE SET"
             " mod_role = excluded.mod_role, log_channel = excluded.log_channel,"
             " escalation_json = excluded.escalation_json,"
@@ -75,6 +76,9 @@ class Database:
             " appeal_guild = excluded.appeal_guild,"
             " welcome_channel = excluded.welcome_channel,"
             " goodbye_channel = excluded.goodbye_channel,"
+            " verified_role = excluded.verified_role,"
+            " verify_channel = excluded.verify_channel,"
+            " verify_message = excluded.verify_message,"
             " updated_at = excluded.updated_at",
             (
                 config.guild_id,
@@ -86,6 +90,9 @@ class Database:
                 config.appeal_guild,
                 config.welcome_channel,
                 config.goodbye_channel,
+                config.verified_role,
+                config.verify_channel,
+                config.verify_message,
                 datetime.now(UTC).isoformat(),
             ),
         )
