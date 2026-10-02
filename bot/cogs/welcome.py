@@ -24,12 +24,6 @@ class Welcome(WardenCog):
                 return channel
         return None
 
-    def _rules_channel_id(self, guild: discord.Guild) -> int | None:
-        for channel in guild.text_channels:
-            if channel.name.lower() == "rules":
-                return channel.id
-        return None
-
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
         # native membership screening: hold the welcome until they accept the rules
@@ -49,37 +43,59 @@ class Welcome(WardenCog):
         channel = self._resolve(member.guild, config.goodbye_channel, "goodbye")
         if channel is None:
             return
+
         embed = discord.Embed(
-            title="Goodbye",
-            description=f"**{member}** left the server.",
+            title=f"See you, {member.name}",
+            description=(
+                f"**{member}** has left **{member.guild.name}**.\n"
+                f"Thanks for the time — {member.guild.member_count} members are still here."
+            ),
             color=discord.Color.dark_grey(),
         )
-        embed.set_footer(text=f"{member.guild.member_count} members remain")
+        embed.set_thumbnail(url=member.display_avatar.url)
+        embed.set_footer(text=f"Member ID {member.id}")
         try:
             await channel.send(embed=embed)
         except discord.HTTPException as exc:
             log.warning("goodbye send failed: %s", exc.status)
 
     async def _welcome(self, member: discord.Member) -> None:
-        config = await self.config(member.guild.id)
-        channel = self._resolve(member.guild, config.welcome_channel, "welcome")
+        guild = member.guild
+        config = await self.config(guild.id)
+        channel = self._resolve(guild, config.welcome_channel, "welcome")
         if channel is None:
             return
 
-        rules_id = self._rules_channel_id(member.guild)
-        rules_line = (
-            f"Head over to <#{rules_id}> first." if rules_id else "Check out the rules."
-        )
-        count = member.guild.member_count
+        steps = []
+        for name, verb in (
+            ("rules", "Read the rules"),
+            ("roles", "Pick your roles"),
+            ("general", "Say hello"),
+        ):
+            target = self._resolve(guild, None, name)
+            if target is not None:
+                steps.append(f"• {verb} in {target.mention}")
+        steps_block = "\n".join(steps) if steps else "• Make yourself at home"
+
         embed = discord.Embed(
-            title=f"Welcome to {member.guild.name}!",
-            description=f"{member.mention}, you're member **{count}**.\n\n{rules_line}",
+            title=f"Welcome to {guild.name}, {member.name}!",
+            description=(
+                f"{member.mention} just walked in — member "
+                f"**{guild.member_count}** of the server.\n\n"
+                f"**Getting started**\n{steps_block}\n\n"
+                f"Glad to have you here."
+            ),
             color=discord.Color.green(),
         )
         embed.set_thumbnail(url=member.display_avatar.url)
         embed.add_field(
             name="Account created",
             value=f"<t:{int(member.created_at.timestamp())}:R>",
+            inline=True,
+        )
+        embed.add_field(
+            name="Joined",
+            value=f"<t:{int(member.joined_at.timestamp()) if member.joined_at else 0}:R>",
             inline=True,
         )
         embed.set_footer(text=f"Member ID {member.id}")
